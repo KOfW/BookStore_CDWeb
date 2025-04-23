@@ -1,4 +1,4 @@
-package com.nlu.cdweb.BookStore.entity;
+    package com.nlu.cdweb.BookStore.entity;
 
-public class AuthorEntity {
-}
+    public class AuthorEntity {
+    }
