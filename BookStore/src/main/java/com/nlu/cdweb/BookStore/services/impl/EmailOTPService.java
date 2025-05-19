@@ -43,8 +43,7 @@ public class EmailOTPService implements IOTPService {
 
     @Override
     public boolean validateOtp(String token, String otp) {
-        boolean valid = jwtGenerator.validateOtp(token, otp);
-        return valid;
+        return jwtGenerator.validateOtp(token, otp);
     }
 
     private String generateOtp() {

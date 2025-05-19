@@ -1,17 +1,28 @@
 package com.nlu.cdweb.BookStore.services.impl;
 
 import com.nlu.cdweb.BookStore.config.JwtGenerator;
+import com.nlu.cdweb.BookStore.dto.ApiResponse;
+import com.nlu.cdweb.BookStore.dto.request.Email;
 import com.nlu.cdweb.BookStore.dto.request.LoginRequest;
 import com.nlu.cdweb.BookStore.dto.request.RegisterRequest;
+import com.nlu.cdweb.BookStore.dto.request.VerifyRequest;
+import com.nlu.cdweb.BookStore.dto.response.AccountResponse;
 import com.nlu.cdweb.BookStore.entity.RoleEntity;
 import com.nlu.cdweb.BookStore.entity.UserEntity;
+import com.nlu.cdweb.BookStore.exception.EntityNotFoundException;
+import com.nlu.cdweb.BookStore.mapper.AccountMapper;
 import com.nlu.cdweb.BookStore.repositories.RoleRepository;
 import com.nlu.cdweb.BookStore.repositories.UserRepository;
+import com.nlu.cdweb.BookStore.services.IOTPService;
 import com.nlu.cdweb.BookStore.services.IUserService;
 import com.nlu.cdweb.BookStore.utils.Role;
 import com.nlu.cdweb.BookStore.utils.State;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,7 +33,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements IUserService {
@@ -31,14 +44,18 @@ public class UserServiceImpl implements IUserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder encoder;
     private final UserRepository userRepository;
-    private JwtGenerator jwtGenerator;
+    private final AccountMapper mapper;
+    private final IOTPService otpService;
+    private final JwtGenerator jwtGenerator;
     @Autowired
-    public UserServiceImpl(AuthenticationManager manager, RoleRepository roleRepository, PasswordEncoder encoder, UserRepository userRepository, JwtGenerator jwtGenerator) {
+    public UserServiceImpl(IOTPService otpService,AccountMapper mapper,AuthenticationManager manager, RoleRepository roleRepository, PasswordEncoder encoder, UserRepository userRepository, JwtGenerator jwtGenerator) {
         this.manager = manager;
         this.roleRepository = roleRepository;
         this.encoder = encoder;
         this.userRepository = userRepository;
         this.jwtGenerator = jwtGenerator;
+        this.mapper = mapper;
+        this.otpService = otpService;
     }
     @Override
     public UserEntity addUser(RegisterRequest dto) {
@@ -117,18 +134,8 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public List<UserEntity> findAllUser() {
-        return userRepository.findAll();
-    }
-
-    @Override
-    public String sendOTP(String email) {
-        return null;
-    }
-
-    @Override
     public boolean deleteUser(Long id) {
-        UserEntity users = userRepository.findAllById(id);
+        UserEntity users = userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("User with id: "+id+" not found"));
         userRepository.delete(users);
         return true;
     }
@@ -142,5 +149,55 @@ public class UserServiceImpl implements IUserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "can't query state");
         }
 
+    }
+
+    @Override
+    public AccountResponse findUserById(Long id) {
+        UserEntity user = userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("User with id: "+id+" not found"));
+        return mapper.toDTO(user);
+    }
+
+    @Override
+    public Map<String, String> requestResetPassword(Email email) {
+        String sendOTP = otpService.sendOtp(email.getEmail());
+        String token = jwtGenerator.generateTokenOTP(email.getEmail(), sendOTP);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("token", token); // gửi về client để xác thực lần sau
+        response.put("otp", sendOTP);
+
+        if (sendOTP != null) {
+            return response;
+        }
+        return null;
+    }
+
+    @Override
+    public boolean responseResetPassword(VerifyRequest request) {
+        boolean valid = otpService.validateOtp(request.getToken(), request.getOtp());
+        if (valid) {
+            return valid;
+        } else {
+            return valid;
+        }
+    }
+
+    @Override
+    public String resetPassword(String email, String password, String repassword) {
+        UserEntity user = userRepository.findByEmail(email).orElseThrow(()->new EntityNotFoundException("Not found email:"+email));
+        if(password.equals(repassword)){
+            user.setPasswordHash(encoder.encode(password));
+            userRepository.save(user);
+            return user.getPassword();
+        }
+        return null;
+    }
+
+    @Override
+    public Page<AccountResponse> getAllAccount(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<UserEntity> users = userRepository.findAll(pageable);
+
+        return users.map(mapper::toDTO);
     }
 }

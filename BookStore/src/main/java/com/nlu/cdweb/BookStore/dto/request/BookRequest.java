@@ -13,7 +13,7 @@ public class BookRequest {
     private String desc;
 
     @NotBlank
-    private String sku;
+    private String sku; // mã quản lý hàng hóa
 
     @NotNull
     @Positive(message="book price must be positive")

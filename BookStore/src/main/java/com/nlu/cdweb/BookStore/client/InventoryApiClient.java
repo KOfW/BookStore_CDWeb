@@ -11,16 +11,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 @Service
 public class InventoryApiClient {
-
-    @Value("${inventory.api.url}")
-    private  String BASE_URL;
-
     private final RestClient client;
-
     public InventoryApiClient(@Value("${inventory.api.url}") String baseUrl) {
         this.client = RestClient.create(baseUrl); // ✅ baseUrl luôn có giá trị
     }
-
     public InventoryResponse createInventory(InventoryRequest inventoryRequest){
         return client
                 .post()

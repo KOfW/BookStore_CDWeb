@@ -6,6 +6,7 @@ import com.nlu.cdweb.BookStore.entity.BookEntity;
 import com.nlu.cdweb.BookStore.entity.CategoryEntity;
 import com.nlu.cdweb.BookStore.entity.DiscountEntity;
 import com.nlu.cdweb.BookStore.event.BookCreationEvent;
+import com.nlu.cdweb.BookStore.mapper.BookMapper;
 import com.nlu.cdweb.BookStore.repositories.CategoryRepository;
 import com.nlu.cdweb.BookStore.repositories.DiscountRepository;
 import com.nlu.cdweb.BookStore.repositories.InventoryRepository;
@@ -31,30 +32,33 @@ public class BookService implements IBookService {
     @Autowired
     private final InventoryRepository inventoryRepository;
     private ApplicationEventPublisher eventPublisher;
+    private final BookMapper bookMapper;
     @Override
     @Transactional
     public BookEntity addBook(BookRequest bookDTO) {
         if(bookRepo.existsByNameIgnoreCase(bookDTO.getName()) || bookRepo.existsBySku(bookDTO.getSku())){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"book with either input name or input sku already exists");
         }
-        BookEntity bookEntity = new BookEntity();
-        bookEntity.setName(bookDTO.getName());
-        bookEntity.setDesc(bookDTO.getDesc());
-        bookEntity.setSku(bookDTO.getSku());
-        bookEntity.setPrice(bookDTO.getPrice());
+//        BookEntity bookEntity = new BookEntity();
+//        bookEntity.setName(bookDTO.getName());
+//        bookEntity.setDesc(bookDTO.getDesc());
+//        bookEntity.setSku(bookDTO.getSku());
+//        bookEntity.setPrice(bookDTO.getPrice());
+//
+//        CategoryEntity cate = categoryRepo.findById(bookDTO.getCategoryId())
+//                .orElseThrow(() -> new RuntimeException("Category not found"));
+//
+//        DiscountEntity discount = discountRepository.findById(bookDTO.getDiscountId())
+//                .orElseThrow(() -> new RuntimeException("Discount not found"));
+//
+//        bookEntity.setCategory(cate);
+//        bookEntity.setDiscount(discount);
 
-        CategoryEntity cate = categoryRepo.findById(bookDTO.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+        BookEntity bookEntity = bookMapper.toEntity(bookDTO);
 
-        DiscountEntity discount = discountRepository.findById(bookDTO.getDiscountId())
-                .orElseThrow(() -> new RuntimeException("Discount not found"));
+        bookRepo.save(bookEntity);
 
-        bookEntity.setCategory(cate);
-        bookEntity.setDiscount(discount);
-
-        BookEntity save = bookRepo.save(bookEntity);
-
-        InventoryRequest inventoryDTO = new InventoryRequest(save.getId(), bookDTO.getQuantity());
+        InventoryRequest inventoryDTO = new InventoryRequest(bookEntity.getId(), bookDTO.getQuantity());
         eventPublisher.publishEvent(new BookCreationEvent(this,inventoryDTO));
 
         return bookEntity;

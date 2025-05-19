@@ -40,6 +40,7 @@ public class OTPController {
 
             Map<String, String> response = new HashMap<>();
             response.put("token", token); // gửi về client để xác thực lần sau
+
             if (sendOtp != null) {
                 return ResponseEntity.ok(new ApiResponse("success", "OTP sent successfully: "+sendOtp, response));
             } else {
