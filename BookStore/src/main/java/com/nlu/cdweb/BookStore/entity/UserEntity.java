@@ -1,81 +1,100 @@
 package com.nlu.cdweb.BookStore.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.nlu.cdweb.BookStore.utils.State;
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 @Entity
-@Table(name = "Users")
-public class UserEntity {
+@Table(name = "user") // Changed to lowercase to match standard naming
+public class UserEntity extends BaseEntity implements UserDetails{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
+
+    @Column(name = "fullname")
     private String fullName;
-    private String username;
+
+    @Column(name = "username",unique = true, nullable = false)
+    private String userName;
+
+    @Column(name = "email",unique = true, nullable = false)
     private String email;
+
+    @Column(name = "phone")
+    private String phone;
+
+    @Column(name = "passwordHash", nullable = false)
     private String passwordHash;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
-    @JoinTable(name = "users_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
-    private List<RoleEntity> roles = new ArrayList<>();
+    @Column(name = "state")
+    @Enumerated(EnumType.STRING)
+    private State state;
 
-    public UserEntity() {
+    @Column(name = "birthDay")
+    private Date dob;
+
+    @Column(name = "photo")
+    private String photo;
+
+    @OneToMany(mappedBy="user", cascade=CascadeType.ALL,orphanRemoval=true)
+    @JsonManagedReference
+    @ToString.Exclude
+    private List<OrderEntity> order;
+
+//    @OneToMany(mappedBy="user", cascade=CascadeType.ALL,orphanRemoval=true)
+//    @JsonManagedReference
+//    private List<ReviewEntity> review;
+
+    @OneToMany(mappedBy="user", cascade=CascadeType.ALL,orphanRemoval=true)
+    @JsonManagedReference
+    private List<WishListEntity> wishlist;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_role",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private List<RoleEntity> role;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return role.stream()
+                .map(role -> new SimpleGrantedAuthority(role.getName().name()))
+                .collect(Collectors.toList());
     }
 
-    public UserEntity(Long id, String username, String email, String passwordHash) {
-        this.id = id;
-        this.username = username;
-        this.email = email;
-        this.passwordHash = passwordHash;
+    @Override
+    public String getUsername() {
+        return this.getEmail(); // hoặc username tuỳ bạn login bằng gì
     }
 
-    public Long getId() {
-        return id;
+    @Override
+    public String getPassword() {
+        return this.getPasswordHash();
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @Override
+    public boolean isAccountNonExpired() { return true; }
 
-    public String getFullName() {
-        return fullName;
-    }
+    @Override
+    public boolean isAccountNonLocked() { return true; }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
+    @Override
+    public boolean isCredentialsNonExpired() { return true; }
 
-    public String getUserName() {
-        return username;
-    }
-
-    public void setUserName(String username) {
-        this.username = username;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public List<RoleEntity> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(List<RoleEntity> roles) {
-        this.roles = roles;
-    }
+    @Override
+    public boolean isEnabled() { return true; }
 }
