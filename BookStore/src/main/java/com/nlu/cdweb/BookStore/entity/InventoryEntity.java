@@ -20,15 +20,11 @@ public class InventoryEntity extends BaseEntity{
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     @Column(name="id")
     private Long id;
-
     @OneToOne(cascade=CascadeType.ALL,orphanRemoval=true)
     @JoinColumn(name="book_id")
     private BookEntity book;
-
     @Column(name="quantity")
     private Integer quantity;
-
-
     @Version
     private Integer version;
 }

@@ -16,6 +16,4 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
     List<BookEntity> findByDiscountActive(Boolean active);
     boolean existsByNameIgnoreCase(String bookName);
     boolean existsBySku(String sku);
-    @Override
-    Page<BookEntity> findAll(Pageable pageable);
 }
