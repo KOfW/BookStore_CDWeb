@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("api/otp/**").permitAll()
                         .requestMatchers("api/inventories/**").permitAll()
                         .requestMatchers("api/books/**").permitAll()
+                        .requestMatchers("api/categories/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 // Trả về ngoại lệ khi không có token

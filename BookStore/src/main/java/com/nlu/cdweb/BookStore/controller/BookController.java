@@ -64,7 +64,7 @@ public class BookController {
         }
     }
 
-    @PostMapping("/delete/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<ApiResponse> delete(@PathVariable Long id){
         try{
             if(id <= 0){
@@ -81,7 +81,7 @@ public class BookController {
         }
     }
 
-    @PostMapping("/update/{id}")
+    @PutMapping("/update/{id}")
     public ResponseEntity<ApiResponse> update(@PathVariable Long id, @RequestBody BookRequest request){
         try{
             if(id <= 0){
