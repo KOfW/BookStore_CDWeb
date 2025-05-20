@@ -31,6 +31,11 @@ public class CategoryEntity extends BaseEntity{
     @Version
     private Integer version;
 
+    public void addProduct(BookEntity p){
+        books.add(p);
+        p.setCategory(this);
+    }
+
     @Override
     public String toString() {
         return "CategoryEntity(id=" + id + ", name=" + name + ")";
