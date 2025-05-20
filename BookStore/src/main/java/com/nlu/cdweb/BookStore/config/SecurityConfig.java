@@ -42,7 +42,7 @@ public class SecurityConfig {
                         .requestMatchers("api/auth/**").permitAll() //api/otp
                         .requestMatchers("api/otp/**").permitAll()
                         .requestMatchers("api/inventories/**").permitAll()
-                        .requestMatchers("api/books/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("api/books/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 // Trả về ngoại lệ khi không có token

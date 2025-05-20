@@ -4,11 +4,14 @@ import com.nlu.cdweb.BookStore.dto.request.InventoryRequest;
 import com.nlu.cdweb.BookStore.dto.response.InventoryResponse;
 import com.nlu.cdweb.BookStore.entity.BookEntity;
 import com.nlu.cdweb.BookStore.entity.InventoryEntity;
+import com.nlu.cdweb.BookStore.mapper.InventoryMapper;
 import com.nlu.cdweb.BookStore.repositories.BookRepository;
 import com.nlu.cdweb.BookStore.repositories.InventoryRepository;
 import com.nlu.cdweb.BookStore.services.IInventoryService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,6 +21,8 @@ public class InventoryService implements IInventoryService {
     private final InventoryRepository inventoryRepository;
     @Autowired
     private final BookRepository bookRepository;
+    @Autowired
+    private final InventoryMapper mapper;
     @Override
     public InventoryResponse create(InventoryRequest inventoryRequest) {
 
@@ -31,5 +36,10 @@ public class InventoryService implements IInventoryService {
         InventoryEntity save = inventoryRepository.save(inventoryEntity);
 
         return new InventoryResponse(save.getId(), save.getBook().getId(), save.getQuantity(), save.getVersion());
+    }
+
+    @Override
+    public Page<InventoryResponse> findAll(int page, int size) {
+        return inventoryRepository.findAll(PageRequest.of(page, size)).map(mapper::toDTO);
     }
 }
