@@ -5,6 +5,10 @@ import com.nlu.cdweb.BookStore.dto.response.InventoryResponse;
 import org.springframework.data.domain.Page;
 
 public interface IInventoryService {
-    InventoryResponse create(InventoryRequest inventoryRequest);
     public Page<InventoryResponse> findAll(int page, int size);
+    public InventoryResponse findById(Long id);
+    public InventoryResponse findByProductId(Long id);
+    public InventoryResponse create(InventoryRequest inventoryRequest);
+    public boolean delete (Long id);
+    public InventoryResponse update(Long id, InventoryRequest inventoryRequest);
 }
