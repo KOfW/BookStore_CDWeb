@@ -14,6 +14,7 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
     List<BookEntity> findByCategoryId(Long id);
     List<BookEntity> findByCategoryName(String name);
     List<BookEntity> findByDiscountActive(Boolean active);
+    List<BookEntity> findByDiscountId(Long id);
     boolean existsByNameIgnoreCase(String bookName);
     boolean existsBySku(String sku);
 }

@@ -40,11 +40,8 @@ public class BookMapper {
         return bookEntity;
     }
 
-    public BookResponse toDTO(BookEntity entity){
-        if(entity==null) return null;
-
-        var categoryOp = Optional.ofNullable(entity.getCategory());
-        var discountOp = Optional.ofNullable(entity.getDiscount());
+    public BookResponse toDTO(BookEntity entity) {
+        if (entity == null) return null;
 
         BookResponse response = new BookResponse();
         response.setId(entity.getId());
@@ -52,10 +49,21 @@ public class BookMapper {
         response.setDesc(entity.getDesc());
         response.setSku(entity.getSku());
         response.setPrice(entity.getPrice());
-        response.setCategoryId(categoryOp.map(CategoryEntity::getId).orElseThrow());
-        response.setDiscountId(discountOp.map(DiscountEntity::getId).orElseThrow());
         response.setVersion(entity.getVersion());
+
+        // Nếu category là bắt buộc
+        if (entity.getCategory() != null)
+            response.setCategoryId(entity.getCategory().getId());
+        else
+            throw new IllegalStateException("Category cannot be null");
+
+        // Nếu discount là optional
+        if (entity.getDiscount() != null)
+            response.setDiscountId(entity.getDiscount().getId());
+        else
+            response.setDiscountId(null);
 
         return response;
     }
+
 }

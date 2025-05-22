@@ -11,6 +11,7 @@ import com.nlu.cdweb.BookStore.repositories.BookRepository;
 import com.nlu.cdweb.BookStore.repositories.CategoryRepository;
 import com.nlu.cdweb.BookStore.services.ICategoryService;
 import com.nlu.cdweb.BookStore.specification.CategorySpecification;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -48,6 +49,7 @@ public class CategoryServiceImpl implements ICategoryService {
     }
 
     @Override
+    @Transactional
     public CategoryResponse create(CategoryRequest request) {
         CategoryEntity entity = mapper.toEntity(request);
         categoryRepo.save(entity);
@@ -55,6 +57,7 @@ public class CategoryServiceImpl implements ICategoryService {
     }
 
     @Override
+    @Transactional
     public boolean delete(Long id) {
         CategoryEntity category = categoryRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("Cant found category id: "+id));
         categoryRepo.delete(category);
@@ -62,6 +65,7 @@ public class CategoryServiceImpl implements ICategoryService {
     }
 
     @Override
+    @Transactional
     public CategoryResponse update(Long id, CategoryRequest request) {
         CategoryEntity category = categoryRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Cannot find category with id: " + id));
@@ -84,6 +88,7 @@ public class CategoryServiceImpl implements ICategoryService {
     }
 
     @Override
+    @Transactional
     public CategoryResponse addBookToCategory(AddBookToCategoryRequest request) {
         CategoryEntity category = categoryRepo.findById(request.getCatetegoryId()).orElseThrow(() -> new EntityNotFoundException("Cant found category id: "+request.getCatetegoryId()));
 

@@ -17,6 +17,7 @@ import com.nlu.cdweb.BookStore.services.IOTPService;
 import com.nlu.cdweb.BookStore.services.IUserService;
 import com.nlu.cdweb.BookStore.utils.Role;
 import com.nlu.cdweb.BookStore.utils.State;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -79,7 +80,6 @@ public class UserServiceImpl implements IUserService {
         userRepository.save(user);
         return user;
     }
-
     @Override
     public String userLogin(LoginRequest dto) {
         /*
@@ -132,14 +132,12 @@ public class UserServiceImpl implements IUserService {
          SecurityContextHolder.getContext().setAuthentication(authentication);
         return token;
     }
-
     @Override
     public boolean deleteUser(Long id) {
         UserEntity users = userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("User with id: "+id+" not found"));
         userRepository.delete(users);
         return true;
     }
-
     @Override
     public boolean userActive(String email, State state) {
         try{
@@ -150,13 +148,11 @@ public class UserServiceImpl implements IUserService {
         }
 
     }
-
     @Override
     public AccountResponse findUserById(Long id) {
         UserEntity user = userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("User with id: "+id+" not found"));
         return mapper.toDTO(user);
     }
-
     @Override
     public Map<String, String> requestResetPassword(Email email) {
         String sendOTP = otpService.sendOtp(email.getEmail());
@@ -171,7 +167,6 @@ public class UserServiceImpl implements IUserService {
         }
         return null;
     }
-
     @Override
     public boolean responseResetPassword(VerifyRequest request) {
         boolean valid = otpService.validateOtp(request.getToken(), request.getOtp());
@@ -181,7 +176,6 @@ public class UserServiceImpl implements IUserService {
             return valid;
         }
     }
-
     @Override
     public String resetPassword(String email, String password, String repassword) {
         UserEntity user = userRepository.findByEmail(email).orElseThrow(()->new EntityNotFoundException("Not found email:"+email));
@@ -192,7 +186,6 @@ public class UserServiceImpl implements IUserService {
         }
         return null;
     }
-
     @Override
     public Page<AccountResponse> getAllAccount(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);

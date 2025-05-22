@@ -15,6 +15,8 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     public Optional<UserEntity> findById(Long id);
     public Optional<UserEntity> findByUserName(String userName);
     public Optional<UserEntity> findByEmail(String email);
+    @Query("SELECT u FROM UserEntity u WHERE u.email = :input OR u.userName = :input")
+    Optional<UserEntity> findByEmailOrUsername(@Param("input") String input);
     public void deleteById(Long id);
     @Modifying
     @Transactional
