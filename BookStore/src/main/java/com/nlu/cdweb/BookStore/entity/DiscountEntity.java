@@ -37,4 +37,14 @@ public class DiscountEntity extends BaseEntity{
 
     @Version
     private Integer version;
+
+    public void addBook(BookEntity bookEntity) {
+        books.add(bookEntity);
+        bookEntity.setDiscount(this);
+    }
+
+    public void removeBook(BookEntity bookEntity) {
+        books.remove(bookEntity);
+        bookEntity.setDiscount(null);
+    }
 }

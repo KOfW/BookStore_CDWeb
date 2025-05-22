@@ -9,6 +9,7 @@ import com.nlu.cdweb.BookStore.mapper.InventoryMapper;
 import com.nlu.cdweb.BookStore.repositories.BookRepository;
 import com.nlu.cdweb.BookStore.repositories.InventoryRepository;
 import com.nlu.cdweb.BookStore.services.IInventoryService;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
-public class InventoryService implements IInventoryService {
+public class InventoryServiceImpl implements IInventoryService {
     @Autowired
     private final InventoryRepository inventoryRepo;
     @Autowired
@@ -25,6 +26,7 @@ public class InventoryService implements IInventoryService {
     @Autowired
     private final InventoryMapper mapper;
     @Override
+    @Transactional
     public InventoryResponse create(InventoryRequest inventoryRequest) {
 
         InventoryEntity inventoryEntity = new InventoryEntity();
@@ -40,6 +42,7 @@ public class InventoryService implements IInventoryService {
     }
 
     @Override
+    @Transactional
     public boolean delete(Long id) {
         InventoryEntity entity = inventoryRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("Not found inventory with id: "+id));
         inventoryRepo.delete(entity);
@@ -47,6 +50,7 @@ public class InventoryService implements IInventoryService {
     }
 
     @Override
+    @Transactional
     public InventoryResponse update(Long id, InventoryRequest inventoryRequest) {
         InventoryEntity entity = inventoryRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("Not found inventory with id: "+id));
 

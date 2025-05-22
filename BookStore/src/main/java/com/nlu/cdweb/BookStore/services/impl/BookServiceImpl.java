@@ -21,7 +21,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -33,13 +32,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
-public class BookService implements IBookService {
+public class BookServiceImpl implements IBookService {
     @Autowired
     private final BookRepository bookRepo;
     @Autowired
@@ -72,6 +70,7 @@ public class BookService implements IBookService {
     }
 
     @Override
+    @Transactional
     public boolean deleteBookById(Long id) {
         if (!bookRepo.existsById(id)) {
             throw new EntityNotFoundException("Not found book with id: " + id);
@@ -81,6 +80,7 @@ public class BookService implements IBookService {
     }
 
     @Override
+    @Transactional
     public BookResponse updateBookById(Long id, BookRequest request) {
         BookEntity entity = bookRepo.findById(id).orElseThrow(() ->
                 new EntityNotFoundException("Not found book with id: "+id));

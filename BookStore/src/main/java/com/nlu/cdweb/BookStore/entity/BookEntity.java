@@ -50,6 +50,10 @@ public class BookEntity extends BaseEntity{
     @JsonManagedReference
     private List<WishListEntity> wishList = new ArrayList<>();
 
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<CartItemEntity> cartItem = new ArrayList<>();
+
     @ManyToOne
     @JoinColumn(name = "author_id")
     @JsonBackReference
