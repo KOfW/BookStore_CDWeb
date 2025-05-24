@@ -2,11 +2,10 @@ package com.nlu.cdweb.BookStore.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,9 +16,6 @@ public class OrderDetailEntity extends BaseEntity{
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "quantity")
-    private int quantity;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonBackReference
     @JoinColumn(name = "order_id")
@@ -29,4 +25,7 @@ public class OrderDetailEntity extends BaseEntity{
     @JsonBackReference
     @JoinColumn(name = "book_id")
     private BookEntity book;
+
+    @Column(name = "quantity")
+    private int quantity;
 }

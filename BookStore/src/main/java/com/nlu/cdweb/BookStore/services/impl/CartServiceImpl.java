@@ -1,115 +1,129 @@
 package com.nlu.cdweb.BookStore.services.impl;
 
 import com.nlu.cdweb.BookStore.config.JwtGenerator;
-import com.nlu.cdweb.BookStore.dto.request.CartItemRequest;
-import com.nlu.cdweb.BookStore.dto.response.CartItemResponse;
-import com.nlu.cdweb.BookStore.entity.BookEntity;
+import com.nlu.cdweb.BookStore.dto.request.CartRequest;
+import com.nlu.cdweb.BookStore.dto.response.CartResponse;
+import com.nlu.cdweb.BookStore.entity.CartEntity;
 import com.nlu.cdweb.BookStore.entity.CartItemEntity;
 import com.nlu.cdweb.BookStore.entity.UserEntity;
-import com.nlu.cdweb.BookStore.mapper.CartItemMapper;
-import com.nlu.cdweb.BookStore.repositories.BookRepository;
+import com.nlu.cdweb.BookStore.exception.EntityNotFoundException;
+import com.nlu.cdweb.BookStore.mapper.CartMapper;
 import com.nlu.cdweb.BookStore.repositories.CartItemRepository;
+import com.nlu.cdweb.BookStore.repositories.CartRepositoriy;
 import com.nlu.cdweb.BookStore.repositories.UserRepository;
 import com.nlu.cdweb.BookStore.services.ICartService;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
-@NoArgsConstructor
 public class CartServiceImpl implements ICartService {
+
     @Autowired
-    private BookRepository bookRepo;
-    @Autowired
-    private UserRepository userRepo;
+    private CartRepositoriy cartRepo;
     @Autowired
     private CartItemRepository cartItemRepo;
     @Autowired
-    private CartItemMapper mapper;
+    private UserRepository userRepo;
     @Autowired
-    private JwtGenerator generator;
+    private CartMapper mapper;
+    @Autowired
+    private JwtGenerator jwt;
 
     @Override
-    public CartItemResponse findById(Long id) {
-        CartItemEntity entity = cartItemRepo.findById(id).orElseThrow();
+    public Page<CartResponse> findAll(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<CartEntity> pageCart = cartRepo.findAll(pageable);
+        return pageCart.map(mapper::toDTO);
+    }
+
+    @Override
+    public CartResponse findById(Long id) {
+        CartEntity entity = cartRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("Not found cart with id: "+id));
         return mapper.toDTO(entity);
     }
 
     @Override
-    public Page<CartItemResponse> findAll(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<CartItemEntity> entities = cartItemRepo.findAll(pageable);
-        return entities.map(mapper::toDTO);
+    public CartResponse findByUserId(String token) {
+        String inputName = jwt.getUsernameFromJwt(token);
+        UserEntity user = userRepo.findByEmailOrUsername(inputName).orElseThrow(() -> new EntityNotFoundException("Not found user with name: "+inputName));
+        CartEntity cart = cartRepo.findByUser_Id(user.getId());
+
+        return mapper.toDTO(cart);
     }
 
     @Override
-    public List<CartItemResponse> findByUserId(Long id, String token) {
-        String username = generator.getUsernameFromJwt(token);
-        UserEntity user = userRepo.findByEmail(username).orElseThrow();
-        id = user.getId();
-        List<CartItemEntity> cart = cartItemRepo.findByUser_Id(id);
-        return cart.stream().map(mapper::toDTO).toList();
+    @Transactional
+    public CartResponse create(CartRequest request, String token) {
+        String inputName = jwt.getUsernameFromJwt(token);
+        UserEntity user = userRepo.findByEmailOrUsername(inputName)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        CartEntity cart = new CartEntity();
+        cart.setUser(user);
+
+        List<CartItemEntity> items = new ArrayList<>();
+        for(Long id : request.getCartItemId()) {
+            CartItemEntity item = cartItemRepo.findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException("Cart item not found"));
+            items.add(item);
+            item.setCart(cart); // Bidirectional relationship
+            cartItemRepo.save(item);
+        }
+
+        cart.setCartItem(items);
+        cart.setTotal(calculateTotal(items));
+
+        return mapper.toDTO(cartRepo.save(cart));
+    }
+
+    private Double calculateTotal(List<CartItemEntity> items) {
+        return items.stream()
+                .mapToDouble(i -> i.getQuantity() * i.getBook().getPrice())
+                .sum();
     }
 
     @Override
-    public CartItemResponse create(CartItemRequest request, String token) {
-        String input = generator.getUsernameFromJwt(token);
-        System.out.println(input);
-        UserEntity user = userRepo.findByEmailOrUsername(input)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public boolean delete(String token) {
+        String inputName = jwt.getUsernameFromJwt(token);
+        UserEntity user = userRepo.findByEmailOrUsername(inputName).orElseThrow(RuntimeException::new);
 
-        if (!request.getUserId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized action for this user");
-        }
+        CartEntity cart = cartRepo.findByUser_Id(user.getId());
+        cartRepo.delete(cart);
 
-        boolean isProductAlreadyAdded = cartItemRepo
-                .existsByUser_IdAndBook_Id(user.getId(), request.getBookId());
-
-        if (isProductAlreadyAdded) {
-            throw new RuntimeException("Product already exists in the cart");
-        }
-
-        CartItemEntity entity = mapper.toEntity(request);
-        CartItemEntity saved = cartItemRepo.save(entity);
-
-        return mapper.toDTO(saved);
-    }
-
-
-    @Override
-    public boolean delete(Long bookId, String token) {
-        String email = generator.getUsernameFromJwt(token);
-        UserEntity user = userRepo.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
-
-        CartItemEntity cartItem = cartItemRepo.findByUser_IdAAndBook_Id(user.getId(), bookId);
-
-        if (cartItem != null) {
-            cartItemRepo.delete(cartItem);
-            return true;
-        }
-
-        return false;
+        return true;
     }
 
     @Override
-    public CartItemResponse update(CartItemRequest request, String token) {
-        String username = generator.getUsernameFromJwt(token);
-        UserEntity user = userRepo.findByEmail(username).orElseThrow();
-        if (!request.getUserId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized action for this user");
+    public CartResponse update(CartRequest request, String token) {
+        String inputName = jwt.getUsernameFromJwt(token);
+        UserEntity user = userRepo.findByEmailOrUsername(inputName).orElseThrow(RuntimeException::new);
+
+        CartEntity cart = cartRepo.findByUser_Id(user.getId());
+
+        List<CartItemEntity> cartItems = cart.getCartItem();
+
+        for(Long ids : request.getCartItemId()){
+            cartItems.add(cartItemRepo.findById(ids).orElseThrow(RuntimeException::new));
         }
-        CartItemEntity cartItem = cartItemRepo.findByUser_IdAAndBook_Id(user.getId(), request.getBookId());
-        cartItem.setQuantity(request.getQuantity());
-        return mapper.toDTO(cartItemRepo.save(cartItem));
+
+        Double total = cartItems.stream().mapToDouble(cartItemTotal -> cartItemTotal.getQuantity() * cartItemTotal.getBook().getPrice()).sum();
+
+
+        cart.setCartItem(cartItems);
+        cart.setTotal(total);
+
+        cartRepo.save(cart);
+
+        return mapper.toDTO(cart);
     }
+
 }

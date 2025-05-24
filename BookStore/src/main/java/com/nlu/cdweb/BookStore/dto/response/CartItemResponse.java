@@ -6,6 +6,6 @@ import lombok.Data;
 public class CartItemResponse {
     private Long id;
     private Long bookId;
-    private Long userId;
+    private Long cartId;
     private Integer quantity;
 }
