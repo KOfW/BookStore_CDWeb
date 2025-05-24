@@ -8,10 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface CartItemRepository extends JpaRepository<CartItemEntity, Long> {
-    public List<CartItemEntity> findByUser_Id(Long id);
-    @Query("select c from CartItemEntity c where c.user.id = :userId and c.book.id = :bookId")
-    public CartItemEntity findByUser_IdAAndBook_Id(@Param("userId") Long userId,@Param("bookId") Long bookId);
-    public boolean existsByUser_IdAndBook_Id(Long userId, Long bookId);
 }

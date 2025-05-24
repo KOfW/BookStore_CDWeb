@@ -1,6 +1,5 @@
 package com.nlu.cdweb.BookStore.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -16,18 +15,16 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "cart_item")
-public class CartItemEntity {
+@Table(name = "cart")
+public class CartEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JsonBackReference
-    @JoinColumn(name = "book_id")
-    private BookEntity book;
-    @ManyToOne
-    @JsonBackReference
-    @JoinColumn(name = "cart_id")
-    private CartEntity cart;
-    private Integer quantity;
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<CartItemEntity> cartItem = new ArrayList<>();
+    @OneToOne
+    @JoinColumn(name="user_id")
+    private UserEntity user;
+    private Double total;
 }

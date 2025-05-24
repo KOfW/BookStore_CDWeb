@@ -53,11 +53,6 @@ public class UserEntity extends BaseEntity implements UserDetails{
     @ToString.Exclude
     private List<OrderEntity> order;
 
-    @OneToMany(mappedBy="user", cascade=CascadeType.ALL,orphanRemoval=true)
-    @JsonManagedReference
-    @ToString.Exclude
-    private List<CartItemEntity> cartItem;
-
 //    @OneToMany(mappedBy="user", cascade=CascadeType.ALL,orphanRemoval=true)
 //    @JsonManagedReference
 //    private List<ReviewEntity> review;
