@@ -16,11 +16,12 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @Validated
 @RequiredArgsConstructor
-@RequestMapping("api/books")
+@RequestMapping("/api/books")
 public class BookController {
 
     private final IBookService bookService;
@@ -106,6 +107,19 @@ public class BookController {
             List<BookResponse> responses = bookService.findBookByCategoryId(id);
             if(responses != null){
                 return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse("200", "Successfull Retrieval of Book With Category Id",responses));
+            }else{
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("204", "Book isn't found",""));
+            }
+        }catch(Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse("500", "Internal Server Error",""));
+        }
+    }
+    @PostMapping("/product_ids")
+    public ResponseEntity<ApiResponse> findAllByIds(@RequestBody Set<Long> ids){
+        try{
+            List<BookResponse> responses = bookService.findAllByIds(ids);
+            if(responses != null){
+                return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse("200", "Successfull Retrieval of Book With Ids",responses));
             }else{
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("204", "Book isn't found",""));
             }

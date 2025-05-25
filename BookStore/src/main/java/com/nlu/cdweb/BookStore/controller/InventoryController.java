@@ -54,10 +54,10 @@ public class InventoryController {
         }
     }
 
-    @GetMapping("/productId/{id}")
-    public ResponseEntity<ApiResponse> findByProductId(@PathVariable Long id){
+    @GetMapping("/products/{productId}")
+    public ResponseEntity<ApiResponse> findByProductId(@PathVariable Long productId){
         try{
-            InventoryResponse responses = inventoryService.findByProductId(id);
+            InventoryResponse responses = inventoryService.findByProductId(productId);
             if(responses != null){
                 return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse("201", "Successfull Retrieval of Inventory By Product Id",responses));
             }else{

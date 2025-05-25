@@ -70,6 +70,6 @@ public class CartItemServiceImpl implements ICartItemService {
         cartItem.setBook(bookRepo.findById(request.getBookId()).orElseThrow(() -> new EntityNotFoundException("Can find book with id: "+request.getBookId())));
         cartItem.setCart(cartRepo.findById(request.getCartId()).orElseThrow(() -> new EntityNotFoundException("Can find cart with id: "+request.getCartId())));
         cartItem.setQuantity(request.getQuantity());
-        return mapper.toDTO(cartItem);
+        return mapper.toDTO(cartItemRepo.save(cartItem));
     }
 }

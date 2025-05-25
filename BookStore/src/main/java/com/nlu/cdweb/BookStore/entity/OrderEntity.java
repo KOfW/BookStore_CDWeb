@@ -32,6 +32,8 @@ public class OrderEntity {
 
     private Double price;
 
+    private String status;
+
     @Version
     private Integer version;
 }
