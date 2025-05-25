@@ -27,5 +27,5 @@ public class OrderDetailEntity extends BaseEntity{
     private BookEntity book;
 
     @Column(name = "quantity")
-    private int quantity;
+    private Integer quantity;
 }

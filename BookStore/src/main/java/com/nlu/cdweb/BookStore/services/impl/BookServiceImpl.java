@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -77,6 +78,11 @@ public class BookServiceImpl implements IBookService {
         }
         bookRepo.deleteById(id);
         return true;
+    }
+
+    @Override
+    public List<BookResponse> findAllByIds(Set<Long> productIds) {
+        return bookRepo.findAllById(productIds).stream().map(bookMapper::toDTO).toList();
     }
 
     @Override

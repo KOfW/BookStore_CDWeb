@@ -81,7 +81,7 @@ public class CartItemController {
         }
     }
 
-    @PutMapping("/update")
+    @PutMapping("/update/{id}")
     public ResponseEntity<ApiResponse> update(@PathVariable Long id ,@RequestBody CartItemRequest request){
         try{
             CartItemResponse response = cartService.update(id ,request);

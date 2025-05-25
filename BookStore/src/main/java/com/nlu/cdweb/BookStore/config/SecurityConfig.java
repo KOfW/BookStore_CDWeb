@@ -47,6 +47,7 @@ public class SecurityConfig {
                         .requestMatchers("api/discounts/**").permitAll()
                         .requestMatchers("/api/cart/**").permitAll()
                         .requestMatchers("api/cartItem/**").permitAll()
+                        .requestMatchers("/api/order/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 // Trả về ngoại lệ khi không có token
